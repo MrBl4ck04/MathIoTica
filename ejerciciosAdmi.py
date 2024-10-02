@@ -220,12 +220,12 @@ def mostrar_ejercicios():
 # Ventana principal
 root = tk.Tk()  
 root.title("Gestor de Ejercicios")  
-
+#root.configure(bg="#E6E6FA")
 # Crear un Label para el título
-titulo_label = tk.Label(root, text="MathIoTica", font=('Arial', 40, 'bold'), fg="green")  # Estilo del título
+titulo_label = tk.Label(root, text="MathIoTica", font=('Arial', 40, 'bold'), fg="#004040")  # Estilo del título
 titulo_label.pack(padx=20, pady=30)  # Coloca el Label en la ventana principal
 
-titulo_label2 = tk.Label(root, text="Bienvenido Docente!", font=('Arial', 20, 'bold'), fg="green")  # Estilo del título
+titulo_label2 = tk.Label(root, text="Bienvenido Docente!", font=('Arial', 20, 'bold'), fg="#004040")  # Estilo del título
 titulo_label2.pack(padx=20, pady=10)  # Coloca el Label en la ventana principal
 
 # Botón para mostrar ejercicios
@@ -233,7 +233,7 @@ btn_ejercicios = tk.Button(
     root, 
     text="Ejercicios", 
     command=mostrar_ejercicios, 
-    bg="#2196F3",        # Color de fondo
+    bg="#008080",        # Color de fondo
     fg="white",         # Color del texto
     font=('Arial', 16, 'bold'),  # Fuente más grande y en negrita
     relief="raised",     # Estilo del borde
@@ -247,7 +247,7 @@ btn_dashboard = tk.Button(
     root, 
     text="Dashboard", 
     command=lambda: messagebox.showinfo("Dashboard", "Función de Dashboard aún no implementada."),  # Placeholder para el dashboard
-    bg="#2196F3",        
+    bg="#008080",        
     fg="white",         
     font=('Arial', 16, 'bold'),  
     relief="raised",     
@@ -260,7 +260,7 @@ btn_reporte = tk.Button(
     root, 
     text="Reportes", 
     command=lambda:reportes(root, conn),  # Placeholder para el dashboard
-    bg="#2196F3",        
+    bg="#008080",        
     fg="white",         
     font=('Arial', 16, 'bold'),  
     relief="raised",     

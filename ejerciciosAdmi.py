@@ -15,69 +15,71 @@ cursor = conn.cursor()  # Crea un cursor para ejecutar consultas en la base de d
 ejercicios_win = None
 modificar_win = None
 agregar_win = None
+
 # Función para abrir la ventana y agregar un nuevo ejercicio
 def agregar_ejercicio():
     global agregar_win  # Variable global para la ventana de agregar
     if agregar_win is not None:
         agregar_win.destroy()  # Cierra la ventana si ya está abierta
 
-    agregar_win = tk.Toplevel(root)
-    agregar_win.title("Agregar Ejercicio")
+    agregar_win = tk.Toplevel(root)  # Crea una nueva ventana sobre la ventana principal
+    agregar_win.title("Agregar Ejercicio")  # Establece el título de la ventana
 
     # Crear campos del formulario
-    lbl_valor1 = tk.Label(agregar_win, text="Valor 1")
-    lbl_valor1.grid(row=0, column=0, padx=10, pady=10)
-    entry_valor1 = tk.Entry(agregar_win)
-    entry_valor1.grid(row=0, column=1, padx=10, pady=10)
+    lbl_valor1 = tk.Label(agregar_win, text="Valor 1")  # Crea una etiqueta para el primer valor
+    lbl_valor1.grid(row=0, column=0, padx=10, pady=10)  # Coloca la etiqueta en la cuadrícula
+    entry_valor1 = tk.Entry(agregar_win)  # Crea un campo de entrada para el primer valor
+    entry_valor1.grid(row=0, column=1, padx=10, pady=10)  # Coloca el campo en la cuadrícula
 
-    lbl_operacion = tk.Label(agregar_win, text="Operación")
-    lbl_operacion.grid(row=0, column=2, padx=10, pady=10)
+    lbl_operacion = tk.Label(agregar_win, text="Operación")  # Crea una etiqueta para la operación
+    lbl_operacion.grid(row=0, column=2, padx=10, pady=10)  # Coloca la etiqueta en la cuadrícula
 
-    operacion_var = tk.StringVar()
-    combo_operacion = ttk.Combobox(agregar_win, textvariable=operacion_var, values=["+", "-", "*", "/"])
-    combo_operacion.grid(row=0, column=3, padx=10, pady=10)
+    operacion_var = tk.StringVar()  # Variable para almacenar la operación seleccionada
+    combo_operacion = ttk.Combobox(agregar_win, textvariable=operacion_var, values=["+", "-", "*", "/"])  # Crea un combo para seleccionar la operación
+    combo_operacion.grid(row=0, column=3, padx=10, pady=10)  # Coloca el combo en la cuadrícula
 
-    lbl_valor2 = tk.Label(agregar_win, text="Valor 2")
-    lbl_valor2.grid(row=0, column=4, padx=10, pady=10)
-    entry_valor2 = tk.Entry(agregar_win)
-    entry_valor2.grid(row=0, column=5, padx=10, pady=10)
+    lbl_valor2 = tk.Label(agregar_win, text="Valor 2")  # Crea una etiqueta para el segundo valor
+    lbl_valor2.grid(row=0, column=4, padx=10, pady=10)  # Coloca la etiqueta en la cuadrícula
+    entry_valor2 = tk.Entry(agregar_win)  # Crea un campo de entrada para el segundo valor
+    entry_valor2.grid(row=0, column=5, padx=10, pady=10)  # Coloca el campo en la cuadrícula
 
-    lbl_respuesta = tk.Label(agregar_win, text="Resultado")
-    lbl_respuesta.grid(row=1, column=0, padx=10, pady=10)
-    entry_respuesta = tk.Entry(agregar_win)
-    entry_respuesta.grid(row=1, column=1, padx=10, pady=10)
+    lbl_respuesta = tk.Label(agregar_win, text="Resultado")  # Crea una etiqueta para el resultado
+    lbl_respuesta.grid(row=1, column=0, padx=10, pady=10)  # Coloca la etiqueta en la cuadrícula
+    entry_respuesta = tk.Entry(agregar_win)  # Crea un campo de entrada para el resultado
+    entry_respuesta.grid(row=1, column=1, padx=10, pady=10)  # Coloca el campo en la cuadrícula
 
     # Función para agregar ejercicio a la base de datos
     def guardar_ejercicio():
-        valor1 = entry_valor1.get()
-        valor2 = entry_valor2.get()
-        operacion = combo_operacion.get()
-        respuesta = entry_respuesta.get()
+        valor1 = entry_valor1.get()  # Obtiene el valor del primer campo de entrada
+        valor2 = entry_valor2.get()  # Obtiene el valor del segundo campo de entrada
+        operacion = combo_operacion.get()  # Obtiene la operación seleccionada
+        respuesta = entry_respuesta.get()  # Obtiene el resultado del campo de entrada
 
-        if not (valor1 and valor2 and operacion and respuesta):
-            messagebox.showwarning("Campos incompletos", "Por favor complete todos los campos.")
-            return
+        if not (valor1 and valor2 and operacion and respuesta):  # Verifica si todos los campos están completos
+            messagebox.showwarning("Campos incompletos", "Por favor complete todos los campos.")  # Muestra un aviso si hay campos vacíos
+            return  # Sale de la función si hay campos vacíos
 
         try:
-            valor1 = int(valor1)
-            valor2 = int(valor2)
-            respuesta = int(respuesta)
-        except ValueError:
-            messagebox.showerror("Error", "Los valores y el resultado deben ser números.")
-            return
+            valor1 = int(valor1)  # Convierte el primer valor a entero
+            valor2 = int(valor2)  # Convierte el segundo valor a entero
+            respuesta = int(respuesta)  # Convierte el resultado a entero
+        except ValueError:  # Captura el error si la conversión falla
+            messagebox.showerror("Error", "Los valores y el resultado deben ser números.")  # Muestra un mensaje de error
+            return  # Sale de la función si hay error
 
         # Insertar el ejercicio en la base de datos
-        query = "INSERT INTO ejercicios (valor1, operacion, valor2, respuesta) VALUES (%s, %s, %s, %s)"
-        cursor.execute(query, (valor1, operacion, valor2, respuesta))
-        conn.commit()
+        query = "INSERT INTO ejercicios (valor1, operacion, valor2, respuesta) VALUES (%s, %s, %s, %s)"  # Consulta SQL para insertar un nuevo ejercicio
+        cursor.execute(query, (valor1, operacion, valor2, respuesta))  # Ejecuta la consulta con los valores obtenidos
+        conn.commit()  # Guarda los cambios en la base de datos
 
-        messagebox.showinfo("Éxito", "Ejercicio agregado exitosamente.")
-        agregar_win.destroy()
-        mostrar_ejercicios()  # Actualizar la tabla
+        messagebox.showinfo("Éxito", "Ejercicio agregado exitosamente.")  # Muestra un mensaje de éxito
+        agregar_win.destroy()  # Cierra la ventana de agregar ejercicio
+        mostrar_ejercicios()  # Actualiza la tabla de ejercicios
 
     # Botón para guardar el ejercicio
-    btn_guardar = tk.Button(agregar_win, text="Guardar Ejercicio", command=guardar_ejercicio)
-    btn_guardar.grid(row=2, column=0, columnspan=2, pady=10)
+    btn_guardar = tk.Button(agregar_win, text="Guardar Ejercicio", command=guardar_ejercicio)  # Crea un botón para guardar el ejercicio
+    btn_guardar.grid(row=2, column=0, columnspan=2, pady=10)  # Coloca el botón en la cuadrícula
+
 
 
 # Función para mostrar la tabla de ejercicios

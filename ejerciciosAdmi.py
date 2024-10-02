@@ -1,7 +1,7 @@
 import tkinter as tk  
 from tkinter import ttk, messagebox 
 import mysql.connector 
-
+from reportes import reportes
 # Conectar a la base de datos MySQL
 conn = mysql.connector.connect(
     host="localhost",  
@@ -221,8 +221,53 @@ def mostrar_ejercicios():
 root = tk.Tk()  
 root.title("Gestor de Ejercicios")  
 
+# Crear un Label para el título
+titulo_label = tk.Label(root, text="MathIoTica", font=('Arial', 40, 'bold'), fg="green")  # Estilo del título
+titulo_label.pack(padx=20, pady=30)  # Coloca el Label en la ventana principal
+
+titulo_label2 = tk.Label(root, text="Bienvenido Docente!", font=('Arial', 20, 'bold'), fg="green")  # Estilo del título
+titulo_label2.pack(padx=20, pady=10)  # Coloca el Label en la ventana principal
+
 # Botón para mostrar ejercicios
-btn_ejercicios = tk.Button(root, text="Ejercicios", command=mostrar_ejercicios)  # Crea el botón para abrir la ventana de ejercicios
-btn_ejercicios.pack(pady=20)  # Coloca el botón en la ventana principal
+btn_ejercicios = tk.Button(
+    root, 
+    text="Ejercicios", 
+    command=mostrar_ejercicios, 
+    bg="#2196F3",        # Color de fondo
+    fg="white",         # Color del texto
+    font=('Arial', 16, 'bold'),  # Fuente más grande y en negrita
+    relief="raised",     # Estilo del borde
+    bd=5,                # Grosor del borde
+    activebackground="#1E88E5"  # Color al presionar
+)  
+btn_ejercicios.pack(pady=20) 
+
+
+btn_dashboard = tk.Button(
+    root, 
+    text="Dashboard", 
+    command=lambda: messagebox.showinfo("Dashboard", "Función de Dashboard aún no implementada."),  # Placeholder para el dashboard
+    bg="#2196F3",        
+    fg="white",         
+    font=('Arial', 16, 'bold'),  
+    relief="raised",     
+    bd=5,                
+    activebackground="#1E88E5"  
+)  
+btn_dashboard.pack(pady=20) 
+
+btn_reporte = tk.Button(
+    root, 
+    text="Reportes", 
+    command=lambda:reportes(root, conn),  # Placeholder para el dashboard
+    bg="#2196F3",        
+    fg="white",         
+    font=('Arial', 16, 'bold'),  
+    relief="raised",     
+    bd=5,                
+    activebackground="#1E88E5"  
+)  
+btn_reporte.pack(pady=20) 
+
 
 root.mainloop()  # Inicia el bucle de eventos de la ventana principal

@@ -11,14 +11,93 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()  # Crea un cursor para ejecutar consultas en la base de datos
 
+# Variables globales para rastrear ventanas abiertas
+ejercicios_win = None
+modificar_win = None
+agregar_win = None
+# Función para abrir la ventana y agregar un nuevo ejercicio
+def agregar_ejercicio():
+    global agregar_win  # Variable global para la ventana de agregar
+    if agregar_win is not None:
+        agregar_win.destroy()  # Cierra la ventana si ya está abierta
+
+    agregar_win = tk.Toplevel(root)
+    agregar_win.title("Agregar Ejercicio")
+
+    # Crear campos del formulario
+    lbl_valor1 = tk.Label(agregar_win, text="Valor 1")
+    lbl_valor1.grid(row=0, column=0, padx=10, pady=10)
+    entry_valor1 = tk.Entry(agregar_win)
+    entry_valor1.grid(row=0, column=1, padx=10, pady=10)
+
+    lbl_operacion = tk.Label(agregar_win, text="Operación")
+    lbl_operacion.grid(row=0, column=2, padx=10, pady=10)
+
+    operacion_var = tk.StringVar()
+    combo_operacion = ttk.Combobox(agregar_win, textvariable=operacion_var, values=["+", "-", "*", "/"])
+    combo_operacion.grid(row=0, column=3, padx=10, pady=10)
+
+    lbl_valor2 = tk.Label(agregar_win, text="Valor 2")
+    lbl_valor2.grid(row=0, column=4, padx=10, pady=10)
+    entry_valor2 = tk.Entry(agregar_win)
+    entry_valor2.grid(row=0, column=5, padx=10, pady=10)
+
+    lbl_respuesta = tk.Label(agregar_win, text="Resultado")
+    lbl_respuesta.grid(row=1, column=0, padx=10, pady=10)
+    entry_respuesta = tk.Entry(agregar_win)
+    entry_respuesta.grid(row=1, column=1, padx=10, pady=10)
+
+    # Función para agregar ejercicio a la base de datos
+    def guardar_ejercicio():
+        valor1 = entry_valor1.get()
+        valor2 = entry_valor2.get()
+        operacion = combo_operacion.get()
+        respuesta = entry_respuesta.get()
+
+        if not (valor1 and valor2 and operacion and respuesta):
+            messagebox.showwarning("Campos incompletos", "Por favor complete todos los campos.")
+            return
+
+        try:
+            valor1 = int(valor1)
+            valor2 = int(valor2)
+            respuesta = int(respuesta)
+        except ValueError:
+            messagebox.showerror("Error", "Los valores y el resultado deben ser números.")
+            return
+
+        # Insertar el ejercicio en la base de datos
+        query = "INSERT INTO ejercicios (valor1, operacion, valor2, respuesta) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (valor1, operacion, valor2, respuesta))
+        conn.commit()
+
+        messagebox.showinfo("Éxito", "Ejercicio agregado exitosamente.")
+        agregar_win.destroy()
+        mostrar_ejercicios()  # Actualizar la tabla
+
+    # Botón para guardar el ejercicio
+    btn_guardar = tk.Button(agregar_win, text="Guardar Ejercicio", command=guardar_ejercicio)
+    btn_guardar.grid(row=2, column=0, columnspan=2, pady=10)
+
+
 # Función para mostrar la tabla de ejercicios
 def mostrar_ejercicios():
+    global ejercicios_win  # Utiliza la variable global
+    # Cierra la ventana anterior si está abierta
+    if ejercicios_win is not None:
+        ejercicios_win.destroy()
+
     ejercicios_win = tk.Toplevel(root)  # Crea una nueva ventana sobre la ventana principal
     ejercicios_win.title("Ejercicios")  # Título de la ventana
 
     # Crear un marco para la tabla y las barras de desplazamiento
     frame = tk.Frame(ejercicios_win)  # Crea un contenedor para la tabla
     frame.pack(expand=True, fill='both')  # Expande el marco y lo llena en ambas direcciones
+
+    # Botón para agregar nuevo ejercicio
+    btn_agregar = tk.Button(ejercicios_win, text="Agregar Ejercicio", command=agregar_ejercicio)
+    btn_agregar.pack(pady=10)
+
 
     # Definir las columnas en el orden correcto
     cols = ("Valor 1", "Operación", "Valor 2", "=", "Resultado")  # Nombres de las columnas
@@ -51,7 +130,11 @@ def mostrar_ejercicios():
 
     # Función para modificar ejercicio
     def modificar_ejercicio(ejercicio_id):
-        # Crear una nueva ventana para modificar
+        global modificar_win  # Utiliza la variable global
+        # Cierra la ventana anterior si está abierta
+        if modificar_win is not None:
+            modificar_win.destroy()
+
         modificar_win = tk.Toplevel(root)  # Crea una nueva ventana para modificar
         modificar_win.title("Modificar Ejercicio")  # Título de la ventana de modificación
 
@@ -132,21 +215,12 @@ def mostrar_ejercicios():
         btn_eliminar = tk.Button(botones_frame, text="Eliminar", command=lambda id=ejercicio[0]: eliminar_ejercicio(id))  # Botón para eliminar el ejercicio
         btn_eliminar.pack(side=tk.LEFT, padx=5, pady=5)  # Coloca el botón en el marco de botones
 
-# Crear la ventana principal
-root = tk.Tk()  # Crea la ventana principal
-root.title("Gestor de Ejercicios Matemáticos")  # Título de la ventana
+# Ventana principal
+root = tk.Tk()  
+root.title("Gestor de Ejercicios")  
 
-# Crear un botón que muestre la tabla de ejercicios
-btn_ejercicios = tk.Button(root, text="Ejercicios", command=mostrar_ejercicios)  # Botón para mostrar ejercicios
-btn_ejercicios.pack(pady=20)  # Coloca el botón en la ventana
+# Botón para mostrar ejercicios
+btn_ejercicios = tk.Button(root, text="Ejercicios", command=mostrar_ejercicios)  # Crea el botón para abrir la ventana de ejercicios
+btn_ejercicios.pack(pady=20)  # Coloca el botón en la ventana principal
 
-# Función para cerrar la conexión al cerrar la ventana principal
-def on_closing():
-    conn.close()  # Cierra la conexión a la base de datos
-    root.destroy()  # Cierra la ventana principal
-
-# Configurar el evento de cierre de la ventana principal
-root.protocol("WM_DELETE_WINDOW", on_closing)
-
-# Iniciar el bucle de la interfaz gráfica
-root.mainloop()
+root.mainloop()  # Inicia el bucle de eventos de la ventana principal

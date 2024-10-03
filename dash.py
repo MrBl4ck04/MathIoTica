@@ -117,41 +117,54 @@ def datos_grafico():
         operaciones.append(fila[3])  # Tipo de operación matemática (suma, resta, etc.)
 
     # Llama a la función 'crear_graficas' para generar los gráficos con los datos obtenidos
-    graficas = crear_graficas(puntuaciones, tiempos, operaciones)
+        graficas = crear_graficas(puntuaciones, tiempos, operaciones, nombres)
 
     # Devuelve los gráficos en formato JSON
     return jsonify(graficas)
 
 # Función para generar las gráficas utilizando Plotly
-def crear_graficas(puntuaciones, tiempos, operaciones):
-    # Calcula la puntuación promedio
-    puntuacion_promedio = sum(puntuaciones) / len(puntuaciones) if puntuaciones else 0
-
-    # Gráfico de barras que muestra la puntuación promedio
+# Función para generar las gráficas utilizando Plotly
+# Función para generar las gráficas utilizando Plotly
+def crear_graficas(puntuaciones, tiempos, operaciones, nombres):
+    # Diccionario para almacenar las puntuaciones y tiempos por estudiante
+    puntuaciones_por_estudiante = {}
+    tiempos_por_estudiante = {}
+    
+    # Agrupa las puntuaciones y tiempos por estudiante
+    for i, nombre in enumerate(nombres):
+        if nombre not in puntuaciones_por_estudiante:
+            puntuaciones_por_estudiante[nombre] = []
+            tiempos_por_estudiante[nombre] = []
+        puntuaciones_por_estudiante[nombre].append(puntuaciones[i])
+        tiempos_por_estudiante[nombre].append(tiempos[i].total_seconds())  # Convierte timedelta a segundos
+    
+    # Listas para almacenar los nombres de estudiantes y sus promedios
+    nombres_estudiantes = []
+    promedios_estudiantes_puntuacion = []
+    promedios_estudiantes_tiempo = []
+    
+    # Calcula el promedio de puntuación y tiempo por estudiante
+    for nombre, puntuaciones in puntuaciones_por_estudiante.items():
+        promedio_puntuacion = sum(puntuaciones) / len(puntuaciones) if puntuaciones else 0
+        promedio_tiempo = sum(tiempos_por_estudiante[nombre]) / len(tiempos_por_estudiante[nombre]) if tiempos_por_estudiante[nombre] else 0
+        nombres_estudiantes.append(nombre)
+        promedios_estudiantes_puntuacion.append(promedio_puntuacion)
+        promedios_estudiantes_tiempo.append(promedio_tiempo)
+    
+    # Gráfico de barras que muestra la puntuación promedio por estudiante
     grafico1 = go.Bar(
-        x=['Puntuación Promedio'],  # Etiqueta del eje X
-        y=[puntuacion_promedio],    # Valor de la puntuación promedio
-        name='Puntuación Promedio'  # Nombre del gráfico
+        x=nombres_estudiantes,  # Nombres de los estudiantes en el eje X
+        y=promedios_estudiantes_puntuacion,  # Puntuación promedio en el eje Y
+        name='Puntuación Promedio por Estudiante'  # Nombre del gráfico
     )
-
-    # Gráfico de barras que muestra el número total de ejercicios resueltos
+    
+    # Gráfico de barras que muestra el tiempo promedio por estudiante
     grafico2 = go.Bar(
-        x=['Ejercicios Resueltos'],  # Etiqueta del eje X
-        y=[len(puntuaciones)],       # Número total de puntuaciones (equivale a ejercicios resueltos)
-        name='Ejercicios Resueltos'  # Nombre del gráfico
+        x=nombres_estudiantes,  # Nombres de los estudiantes en el eje X
+        y=promedios_estudiantes_tiempo,  # Tiempo promedio en segundos en el eje Y
+        name='Tiempo Promedio por Estudiante (segundos)'  # Nombre del gráfico
     )
-
-    # Convierte los tiempos de timedelta a segundos
-    tiempos_en_segundos = [t.total_seconds() for t in tiempos]
-    # Calcula el tiempo promedio en segundos
-    tiempo_promedio = sum(tiempos_en_segundos) / len(tiempos_en_segundos) if tiempos_en_segundos else 0
-
-    # Gráfico de barras que muestra el tiempo promedio en segundos
-    grafico3 = go.Bar(
-        x=['Tiempo Promedio (s)'],  # Etiqueta del eje X
-        y=[tiempo_promedio],        # Valor del tiempo promedio en segundos
-        name='Tiempo Promedio'      # Nombre del gráfico
-    )
+    
 
     # Diccionario para contar la distribución de operaciones (suma, resta, multiplicación, división)
     operaciones_dict = {"+": 0, "-": 0, "*": 0, "/": 0}
@@ -159,21 +172,20 @@ def crear_graficas(puntuaciones, tiempos, operaciones):
         operaciones_dict[operacion] += 1  # Incrementa el contador de cada operación
 
     # Gráfico circular que muestra la distribución de operaciones
-    grafico4 = go.Pie(
+    grafico3 = go.Pie(
         labels=list(operaciones_dict.keys()),   # Etiquetas de las operaciones
         values=list(operaciones_dict.values()), # Cantidad de veces que se usó cada operación
-        name='Distribución de Operaciones'      # Nombre del gráfico
+        name='Distribución de Operaciones Matemáticas'  # Nombre del gráfico
     )
 
     # Define el diseño general de los gráficos
     layout = go.Layout(
-        title="Dashboard de Juego - Tiempo Real",  # Título del dashboard
-        xaxis_title="Categorías",                 # Título del eje X
-        yaxis_title="Valores"                     # Título del eje Y
+        title="Dashboard de Juego - Análisis de Rendimiento",  # Título del dashboard
+        xaxis_title="Estudiantes",                # Título del eje X
     )
 
     # Crea la figura con los gráficos y el layout, y devuelve el resultado en formato JSON
-    fig = go.Figure(data=[grafico1, grafico2, grafico3, grafico4], layout=layout)
+    fig = go.Figure(data=[grafico1, grafico2, grafico3], layout=layout)
     return pio.to_json(fig)  # Convierte la figura en JSON para su envío al frontend
 
 # Punto de entrada de la aplicación

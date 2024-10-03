@@ -100,7 +100,11 @@ def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana
     tree.pack(pady=10, fill=tk.BOTH, expand=True)  # Muestra la tabla en la ventana
 
     # Botón para buscar
-    buscar_btn = tk.Button(reporte_window, text="Buscar", command=buscar)  # Crea un botón que ejecuta la función de búsqueda
+    buscar_btn = tk.Button(reporte_window, text="Buscar", command=buscar, bg="#008080",        
+    fg="white",         
+    font=('Arial', 12, 'bold'),  
+    relief="raised",     
+    bd=5,    )  # Crea un botón que ejecuta la función de búsqueda
     buscar_btn.pack(pady=10)  # Muestra el botón en la ventana
 
     # Función para guardar en CSV
@@ -124,5 +128,9 @@ def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana
         messagebox.showinfo("Éxito", f"Datos guardados en '{nombre_archivo}'")  # Muestra un mensaje de éxito
 
     # Botón para guardar como CSV
-    guardar_btn = tk.Button(reporte_window, text="Guardar como CSV", command=guardar_csv)  # Crea un botón que ejecuta la función para guardar en CSV
+    guardar_btn = tk.Button(reporte_window, text="Guardar como CSV", command=guardar_csv,bg="#2082AA",        
+    fg="white",         
+    font=('Arial', 12, 'bold'),  
+    relief="raised",     
+    bd=5)  # Crea un botón que ejecuta la función para guardar en CSV
     guardar_btn.pack(pady=10)  # Muestra el botón en la ventana

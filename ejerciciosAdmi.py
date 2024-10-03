@@ -77,7 +77,11 @@ def agregar_ejercicio():
         mostrar_ejercicios()  # Actualiza la tabla de ejercicios
 
     # Botón para guardar el ejercicio
-    btn_guardar = tk.Button(agregar_win, text="Guardar Ejercicio", command=guardar_ejercicio)  # Crea un botón para guardar el ejercicio
+    btn_guardar = tk.Button(agregar_win, text="Guardar Ejercicio", command=guardar_ejercicio,  bg="#008080",        
+    fg="white",         
+    font=('Arial', 11, 'bold'),  
+    relief="raised",     
+    bd=5,   )  # Crea un botón para guardar el ejercicio
     btn_guardar.grid(row=2, column=0, columnspan=2, pady=10)  # Coloca el botón en la cuadrícula
 
 
@@ -97,12 +101,16 @@ def mostrar_ejercicios():
     frame.pack(expand=True, fill='both')  # Expande el marco y lo llena en ambas direcciones
 
     # Botón para agregar nuevo ejercicio
-    btn_agregar = tk.Button(ejercicios_win, text="Agregar Ejercicio", command=agregar_ejercicio)
+    btn_agregar = tk.Button(ejercicios_win, text="Agregar Ejercicio", command=agregar_ejercicio, bg="#008080",        
+    fg="white",         
+    font=('Arial', 11, 'bold'),  
+    relief="raised",     
+    bd=5)
     btn_agregar.pack(pady=10)
 
 
     # Definir las columnas en el orden correcto
-    cols = ("Valor 1", "Operación", "Valor 2", "=", "Resultado")  # Nombres de las columnas
+    cols = ("ID","Valor 1", "Operación", "Valor 2", "=", "Resultado")  # Nombres de las columnas
     tree = ttk.Treeview(frame, columns=cols, show='headings')  # Crea una tabla con las columnas definidas
 
     # Configurar encabezados de las columnas
@@ -124,7 +132,7 @@ def mostrar_ejercicios():
 
     # Función para eliminar ejercicio
     def eliminar_ejercicio(ejercicio_id):
-        if messagebox.askyesno("Confirmar", "¿Estás seguro de que deseas eliminar este ejercicio?"):  # Pregunta de confirmación
+        if messagebox.askyesno("Confirmar", f"¿Estás seguro de que deseas eliminar este ejercicio? (Id:{ejercicio_id})"):  # Pregunta de confirmación
             cursor.execute("DELETE FROM ejercicios WHERE id_ejercicio = %s", (ejercicio_id,))  # Ejecuta la consulta para eliminar el ejercicio
             conn.commit()  # Guarda los cambios en la base de datos
             mostrar_ejercicios()  # Actualiza la tabla de ejercicios
@@ -198,23 +206,31 @@ def mostrar_ejercicios():
             mostrar_ejercicios()  # Actualiza la tabla de ejercicios
 
         # Botón para guardar los cambios
-        btn_guardar = tk.Button(modificar_win, text="Guardar cambios", command=guardar_modificacion)  # Crea el botón para guardar
+        btn_guardar = tk.Button(modificar_win, text="Guardar cambios", command=guardar_modificacion,  bg="#008080",        
+    fg="white",         
+    font=('Arial', 11, 'bold'),  
+    relief="raised",     
+    bd=5)  # Crea el botón para guardar
         btn_guardar.grid(row=2, column=0, columnspan=2, pady=10)  # Coloca el botón en la ventana
 
     # Agregar filas a la tabla y botones
     for index, ejercicio in enumerate(ejercicios):  # Itera sobre todos los ejercicios
-        tree.insert("", "end", values=(ejercicio[2], ejercicio[1], ejercicio[3], "=", ejercicio[4]))  # Inserta los datos en la tabla
+        tree.insert("", "end", values=(ejercicio[0], ejercicio[2], ejercicio[1], ejercicio[3], "=", ejercicio[4]))  # Inserta los datos en la tabla
         
         # Crear un nuevo frame para los botones
         botones_frame = tk.Frame(frame)  # Crea un marco para los botones
         botones_frame.pack(fill='x')  # Expande el marco horizontalmente
 
         # Crear un botón para modificar
-        btn_modificar = tk.Button(botones_frame, text="Modificar", command=lambda id=ejercicio[0]: modificar_ejercicio(id))  # Botón para modificar el ejercicio
+        btn_modificar = tk.Button(botones_frame, text="Modificar", command=lambda id=ejercicio[0]: modificar_ejercicio(id), bg="#2082AA",        
+    fg="white",         
+    font=('Arial', 6, 'bold'))  # Botón para modificar el ejercicio
         btn_modificar.pack(side=tk.LEFT, padx=5, pady=5)  # Coloca el botón en el marco de botones
 
         # Crear un botón para eliminar
-        btn_eliminar = tk.Button(botones_frame, text="Eliminar", command=lambda id=ejercicio[0]: eliminar_ejercicio(id))  # Botón para eliminar el ejercicio
+        btn_eliminar = tk.Button(botones_frame, text="Eliminar", command=lambda id=ejercicio[0]: eliminar_ejercicio(id), bg="#008080",        
+    fg="white",         
+    font=('Arial', 6, 'bold'))  # Botón para eliminar el ejercicio
         btn_eliminar.pack(side=tk.LEFT, padx=5, pady=5)  # Coloca el botón en el marco de botones
 
 # Ventana principal

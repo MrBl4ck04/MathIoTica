@@ -13,9 +13,12 @@ import time
 # Importar Image y ImageTk para trabajar con imágenes
 from PIL import Image, ImageTk
 
+# Variables globales para almacenar los detalles de cada pregunta
+preguntas_falladas = []  # Almacenar las preguntas falladas
+detalles_respuestas = []  # Almacenar los detalles de tiempo por respuesta y puntuación
+
 # Función para conectar a la base de datos MySQL
 def conectar_bd():
-    # Retorna una conexión a la base de datos mathiotica
     return mysql.connector.connect(
         host="192.168.243.2",  # El servidor de la base de datos
         user="Franz",  # Usuario de la base de datos
@@ -25,105 +28,126 @@ def conectar_bd():
 
 # Función para obtener el número de juego más alto e incrementarlo
 def obtener_nuevo_nr_juego():
-    conexion = conectar_bd()  # Establecer conexión a la base de datos
-    cursor = conexion.cursor()  # Crear un cursor para ejecutar consultas
-    # Consulta SQL para obtener el número de juego más alto y agregar 1
+    conexion = conectar_bd()
+    cursor = conexion.cursor()
     query = "SELECT IFNULL(MAX(nrJuego), 0) + 1 AS nuevo_nrJuego FROM juegos"
-    cursor.execute(query)  # Ejecutar la consulta
-    resultado = cursor.fetchone()  # Obtener el resultado de la consulta
-    nuevo_nr_juego = resultado[0]  # Extraer el nuevo número de juego
-    cursor.close()  # Cerrar el cursor
-    conexion.close()  # Cerrar la conexión
-    return nuevo_nr_juego  # Retornar el nuevo número de juego
+    cursor.execute(query)
+    resultado = cursor.fetchone()
+    nuevo_nr_juego = resultado[0]
+    cursor.close()
+    conexion.close()
+    return nuevo_nr_juego
 
 # Función para guardar los datos de cada operación en la tabla 'juegos'
 def guardar_operacion(nrJuego, nombre, curso, tiempo, puntuacion, operacion, digitos, logrado):
-    conexion = conectar_bd()  # Establecer conexión a la base de datos
-    cursor = conexion.cursor()  # Crear un cursor para ejecutar consultas
-    # Consulta SQL para insertar una nueva operación en la tabla 'juegos'
+    conexion = conectar_bd()
+    cursor = conexion.cursor()
     query = "INSERT INTO juegos (nrJuego, nombre, curso, tiempo, fecha, puntuacion, operacion, digitos, logrado) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    fecha_actual = datetime.now().date()  # Obtener la fecha actual
-    # Ejecutar la consulta con los parámetros correspondientes
+    fecha_actual = datetime.now().date()
     cursor.execute(query, (nrJuego, nombre, curso, tiempo, fecha_actual, puntuacion, operacion, digitos, logrado))
-    conexion.commit()  # Confirmar los cambios en la base de datos
-    cursor.close()  # Cerrar el cursor
-    conexion.close()  # Cerrar la conexión
+    conexion.commit()
+    cursor.close()
+    conexion.close()
 
 # Función para obtener ejercicios de la base de datos
 def obtener_ejercicios():
-    conexion = conectar_bd()  # Establecer conexión a la base de datos
-    cursor = conexion.cursor(dictionary=True)  # Crear un cursor que retorne resultados como diccionarios
-    query = "SELECT * FROM ejercicios"  # Consulta SQL para obtener todos los ejercicios
-    cursor.execute(query)  # Ejecutar la consulta
-    ejercicios = cursor.fetchall()  # Obtener todos los resultados
-    cursor.close()  # Cerrar el cursor
-    conexion.close()  # Cerrar la conexión
-    return ejercicios  # Retornar la lista de ejercicios
+    conexion = conectar_bd()
+    cursor = conexion.cursor(dictionary=True)
+    query = "SELECT * FROM ejercicios"
+    cursor.execute(query)
+    ejercicios = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+    return ejercicios
 
 # Función para calcular la puntuación en base al tiempo de respuesta
 def calcular_puntuacion(tiempo_respuesta, max_puntos):
     if tiempo_respuesta <= 3:
-        return max_puntos  # Devuelve el máximo de puntos si el tiempo es menor o igual a 3 segundos
+        return max_puntos
     elif tiempo_respuesta <= 15:
-        # Calcula la puntuación proporcional basada en el tiempo de respuesta
         return max(0, max_puntos - ((tiempo_respuesta - 3) / 12) * max_puntos)
     else:
-        return 0  # Devuelve 0 puntos si el tiempo es mayor a 15 segundos
+        return 0
 
 # Función que maneja el flujo del juego
 def iniciar_juego():
-    nombre = nombre_entry.get()  # Obtener el nombre del campo de entrada
-    curso = curso_var.get()  # Obtener el curso seleccionado
+    global preguntas_falladas, detalles_respuestas  # Limpiar las listas antes de cada juego
+    preguntas_falladas = []
+    detalles_respuestas = []
+    
+    nombre = nombre_entry.get()
+    curso = curso_var.get()
 
-    # Validar si se ingresó el nombre y se seleccionó un curso
     if not nombre or not curso:
-        messagebox.showerror("Error", "Por favor, ingresa tu nombre y selecciona un curso.")  # Mostrar error
-        return  # Terminar la función si hay un error
+        messagebox.showerror("Error", "Por favor, ingresa tu nombre y selecciona un curso.")
+        return
 
-    nr_juego = obtener_nuevo_nr_juego()  # Obtener el nuevo número de juego
-    operaciones = obtener_ejercicios()  # Obtener ejercicios de la base de datos
-    # Iniciar el ciclo de preguntas
+    nr_juego = obtener_nuevo_nr_juego()
+    operaciones = obtener_ejercicios()
     ejecutar_preguntas(nr_juego, nombre, curso, operaciones, 0, 0)
 
 # Función para ejecutar cada pregunta del juego y medir el tiempo de respuesta
 def ejecutar_preguntas(nrJuego, nombre, curso, operaciones, indice, puntuacion_total):
-    if indice < len(operaciones):  # Verificar si hay más operaciones para realizar
-        operacion = operaciones[indice]  # Obtener la operación actual
-        pregunta_label.config(text=f"Resuelve: {operacion['valor1']} {operacion['operacion']} {operacion['valor2']}")  # Mostrar la pregunta
-        tiempo_inicio = time.time()  # Registrar el tiempo de inicio
+    if indice < len(operaciones):
+        operacion = operaciones[indice]
+        pregunta_label.config(text=f"Resuelve: {operacion['valor1']} {operacion['operacion']} {operacion['valor2']}")
+        tiempo_inicio = time.time()
 
-        # Función interna que maneja la respuesta del usuario
         def responder():
-            respuesta_usuario = respuesta_entry.get()  # Obtener la respuesta del usuario
-            tiempo_final = time.time()  # Registrar el tiempo final
-            tiempo_respuesta = round(tiempo_final - tiempo_inicio, 2)  # Calcular el tiempo de respuesta
+            respuesta_usuario = respuesta_entry.get()
+            tiempo_final = time.time()
+            tiempo_respuesta = round(tiempo_final - tiempo_inicio, 2)
 
-            respuesta_correcta = operacion['respuesta']  # Obtener la respuesta correcta
-            logrado = int(respuesta_usuario == str(respuesta_correcta))  # Verificar si la respuesta es correcta
-            max_puntos = 100 / len(operaciones)  # Calcular la puntuación máxima por pregunta
-            # Calcular la puntuación basada en el tiempo de respuesta
+            respuesta_correcta = operacion['respuesta']
+            logrado = int(respuesta_usuario == str(respuesta_correcta))
+            max_puntos = 100 / len(operaciones)
             puntuacion = calcular_puntuacion(tiempo_respuesta, max_puntos) if logrado else 0
-            puntuacion_total_nuevo = puntuacion_total + puntuacion  # Actualizar la puntuación total
+            puntuacion_total_nuevo = puntuacion_total + puntuacion
 
-            # Calcular el número de dígitos de la operación
             digitos = max(len(str(operacion['valor1'])), len(str(operacion['valor2'])))
-            # Guardar la operación en la base de datos
             guardar_operacion(nrJuego, nombre, curso, tiempo_respuesta, puntuacion, operacion['operacion'], digitos, logrado)
 
-            respuesta_entry.delete(0, tk.END)  # Limpiar la entrada de respuesta
-            # Llamar nuevamente a la función para ejecutar la siguiente pregunta
+            # Almacenar detalles de la respuesta en la lista
+            detalles_respuestas.append({
+                'operacion': f"{operacion['valor1']} {operacion['operacion']} {operacion['valor2']}",
+                'correcto': logrado,
+                'tiempo': tiempo_respuesta,
+                'puntuacion': puntuacion
+            })
+
+            # Si la respuesta es incorrecta, agregar la operación a la lista de preguntas falladas
+            if not logrado:
+                preguntas_falladas.append(operacion)
+
+            respuesta_entry.delete(0, tk.END)
             ejecutar_preguntas(nrJuego, nombre, curso, operaciones, indice + 1, puntuacion_total_nuevo)
 
-        enviar_btn.config(command=responder)  # Configurar el botón para que llame a la función responder
+        enviar_btn.config(command=responder)
     else:
-        # Calcular el porcentaje logrado
-        porcentaje_logrado = (puntuacion_total / 100) * 100
-        # Mostrar mensaje de resultado según el porcentaje logrado
-        if porcentaje_logrado >= 60:
-            messagebox.showinfo("Resultado", "¡Juego completado con éxito!")  # Mensaje de éxito
-        else:
-            messagebox.showinfo("Resultado", "No lograste completar el juego.")  # Mensaje de fallo
-        pregunta_label.config(text="¡Juego terminado!")  # Actualizar la etiqueta de pregunta
+        mostrar_resultados(puntuacion_total)
+
+# Función para mostrar los resultados al final del juego
+def mostrar_resultados(puntuacion_total):
+    porcentaje_logrado = (puntuacion_total / 100) * 100
+    resultado_msg = f"Porcentaje logrado: {porcentaje_logrado:.2f}%\n"
+    if porcentaje_logrado >= 60:
+        resultado_msg += "¡Juego completado con éxito!\n"
+    else:
+        resultado_msg += "No lograste completar el juego.\n"
+
+    resultado_msg += "\nDetalles de cada respuesta:\n"
+    for detalle in detalles_respuestas:
+        estado = "Correcto" if detalle['correcto'] else "Incorrecto"
+        resultado_msg += f"{detalle['operacion']}: {estado}\n"
+
+    if preguntas_falladas:
+        resultado_msg += "\nPreguntas falladas:\n"
+        for fallo in preguntas_falladas:
+            resultado_msg += f"{fallo['valor1']} {fallo['operacion']} {fallo['valor2']} = {fallo['respuesta']}\n"
+
+    messagebox.showinfo("Resultado Final", resultado_msg)
+    pregunta_label.config(text="¡Juego terminado!")
+
 
 # Configuración de la ventana principal
 ventana = ttk.Window(themename="flatly")  # Crear una ventana de ttkbootstrap con el tema "flatly"

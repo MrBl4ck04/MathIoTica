@@ -17,7 +17,24 @@
     <label for="filtro_curso">Curso:</label>
     <select id="filtro_curso"></select>
 
-    <div id="grafico" style="width:100%;height:600px;"></div>
+    <label for="filtro_resuelto">Ejercicio Resuelto:</label>
+<select id="filtro_resuelto">
+    <option value="todos">Todos</option>
+    <option value="resuelto">Resuelto</option>
+    <option value="no_resuelto">No Resuelto</option>
+</select>
+
+    <label for="filtro_fecha_inicio">Fecha Inicio:</label>
+    <input type="date" id="filtro_fecha_inicio">
+
+    <label for="filtro_fecha_fin">Fecha Fin:</label>
+    <input type="date" id="filtro_fecha_fin">
+
+    <!-- Divs separados para cada gráfico -->
+    <div id="grafico1" style="width:100%;height:400px;"></div>
+    <div id="grafico2" style="width:100%;height:400px;"></div>
+    <div id="grafico3" style="width:100%;height:400px;"></div>
+    <div id="grafico4" style="width:100%;height:400px;"></div>
 
     <script>
         // Función para cargar los filtros desde la base de datos
@@ -25,14 +42,26 @@
             $.getJSON('/obtener_filtros', function(data) {
                 var filtroNombre = document.getElementById('filtro_nombre');
                 var filtroCurso = document.getElementById('filtro_curso');
-
+    
+                // Agregar opción "Todos" al inicio
+                var opcionTodosNombre = document.createElement('option');
+                opcionTodosNombre.value = 'todos';
+                opcionTodosNombre.text = 'Todos';
+                filtroNombre.add(opcionTodosNombre);
+    
+                var opcionTodosCurso = document.createElement('option');
+                opcionTodosCurso.value = 'todos';
+                opcionTodosCurso.text = 'Todos';
+                filtroCurso.add(opcionTodosCurso);
+    
+                // Agregar los nombres y cursos de la base de datos
                 data.nombres.forEach(function(nombre) {
                     var opcion = document.createElement('option');
                     opcion.value = nombre;
                     opcion.text = nombre;
                     filtroNombre.add(opcion);
                 });
-
+    
                 data.cursos.forEach(function(curso) {
                     var opcion = document.createElement('option');
                     opcion.value = curso;
@@ -41,27 +70,38 @@
                 });
             });
         }
-
+    
         // Cargar los filtros al cargar la página
         cargarFiltros();
+    
+        // Función para actualizar los gráficos con los filtros seleccionados
+        function actualizarGraficos() {
+        var nombre = document.getElementById('filtro_nombre').value;
+        var curso = document.getElementById('filtro_curso').value;
+        var resuelto = document.getElementById('filtro_resuelto').value;
+        var fecha_inicio = document.getElementById('filtro_fecha_inicio').value;
+        var fecha_fin = document.getElementById('filtro_fecha_fin').value;
 
-        // Función para actualizar el gráfico con los filtros seleccionados
-        function actualizarGrafico() {
-            var nombre = document.getElementById('filtro_nombre').value;
-            var curso = document.getElementById('filtro_curso').value;
+        // Enviar los filtros al backend
+        $.getJSON(`/datos_grafico?nombre=${nombre}&curso=${curso}&resuelto=${resuelto}&fecha_inicio=${fecha_inicio}&fecha_fin=${fecha_fin}`, function(data) {
+            var graficos = JSON.parse(data).data;
+            
+            Plotly.react('grafico1', [graficos[0]], JSON.parse(data).layout);
+            Plotly.react('grafico2', [graficos[1]], JSON.parse(data).layout);
+            Plotly.react('grafico3', [graficos[2]], JSON.parse(data).layout);
+            Plotly.react('grafico4', [graficos[3]], JSON.parse(data).layout);
+        });
+    }
 
-            $.getJSON(`/datos_grafico?nombre=${nombre}&curso=${curso}`, function(data) {
-                var grafico = document.getElementById('grafico');
-                Plotly.react(grafico, JSON.parse(data).data, JSON.parse(data).layout);
-            });
-        }
-
-        // Actualizar el gráfico cada vez que se cambian los filtros
-        document.getElementById('filtro_nombre').onchange = actualizarGrafico;
-        document.getElementById('filtro_curso').onchange = actualizarGrafico;
-
-        // Inicializar el gráfico al cargar la página
-        actualizarGrafico();
+    // Actualizar los gráficos cada vez que se cambian los filtros
+    document.getElementById('filtro_nombre').onchange = actualizarGraficos;
+    document.getElementById('filtro_curso').onchange = actualizarGraficos;
+    document.getElementById('filtro_resuelto').onchange = actualizarGraficos;
+    document.getElementById('filtro_fecha_inicio').onchange = actualizarGraficos;
+    document.getElementById('filtro_fecha_fin').onchange = actualizarGraficos;
+        // Inicializar los gráficos al cargar la página
+        actualizarGraficos();
     </script>
+    
 </body>
 </html>

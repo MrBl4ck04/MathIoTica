@@ -12,7 +12,7 @@ def conectar():
         host="localhost",
         user="root",  # Cambia esto
         password="",  # Cambia esto
-        database="mathiotica"
+        database="mate"
     )
     return conexion
 
@@ -44,19 +44,38 @@ def obtener_filtros():
 def datos_grafico():
     filtro_nombre = request.args.get('nombre', default=None, type=str)
     filtro_curso = request.args.get('curso', default=None, type=str)
+    filtro_resuelto = request.args.get('resuelto', default=None, type=str)
+    filtro_fecha_inicio = request.args.get('fecha_inicio', default=None, type=str)
+    filtro_fecha_fin = request.args.get('fecha_fin', default=None, type=str)
 
     conexion = conectar()
     cursor = conexion.cursor()
 
-    query = "SELECT nombre, puntuacion, tiempo, operacion FROM juegos WHERE 1=1"
+    # Construir la consulta SQL con filtros opcionales
+    query = "SELECT nombre, puntuacion, tiempo, operacion, logrado, fecha FROM juegos WHERE 1=1"
     parametros = []
 
-    if filtro_nombre:
+    # Si no se selecciona "Todos", se aplica el filtro
+    if filtro_nombre and filtro_nombre != 'todos':
         query += " AND nombre = %s"
         parametros.append(filtro_nombre)
-    if filtro_curso:
+    if filtro_curso and filtro_curso != 'todos':
         query += " AND curso = %s"
         parametros.append(filtro_curso)
+    
+    # Aplicar el filtro de resuelto/no resuelto
+    if filtro_resuelto == 'resuelto':
+        query += " AND logrado = 1"  # 1 indica que se resolvió el ejercicio
+    elif filtro_resuelto == 'no_resuelto':
+        query += " AND logrado = 0"  # 0 indica que no se resolvió el ejercicio
+
+    # Aplicar filtro de rango de fechas
+    if filtro_fecha_inicio:
+        query += " AND fecha >= %s"
+        parametros.append(filtro_fecha_inicio)
+    if filtro_fecha_fin:
+        query += " AND fecha <= %s"
+        parametros.append(filtro_fecha_fin)
 
     cursor.execute(query, parametros)
     resultados = cursor.fetchall()
@@ -77,6 +96,7 @@ def datos_grafico():
     graficas = crear_graficas(puntuaciones, tiempos, operaciones)
 
     return jsonify(graficas)
+
 
 # Función para generar los gráficos en Plotly
 def crear_graficas(puntuaciones, tiempos, operaciones):

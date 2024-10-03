@@ -4,57 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard en Tiempo Real</title>
+    <!-- Se incluye la librería de Plotly para generar las gráficas -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Se incluye la librería de jQuery para simplificar las solicitudes AJAX -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
+    <!-- Título principal de la página -->
     <h1>Dashboard en Tiempo Real</h1>
 
-    <!-- Filtros -->
+    <!-- Filtros para seleccionar y personalizar los datos que se mostrarán en las gráficas -->
+    <!-- Filtro por nombre -->
     <label for="filtro_nombre">Nombre:</label>
     <select id="filtro_nombre"></select>
 
+    <!-- Filtro por curso -->
     <label for="filtro_curso">Curso:</label>
     <select id="filtro_curso"></select>
 
+    <!-- Filtro para ejercicios resueltos o no resueltos -->
     <label for="filtro_resuelto">Ejercicio Resuelto:</label>
-<select id="filtro_resuelto">
-    <option value="todos">Todos</option>
-    <option value="resuelto">Resuelto</option>
-    <option value="no_resuelto">No Resuelto</option>
-</select>
+    <select id="filtro_resuelto">
+        <option value="todos">Todos</option>
+        <option value="resuelto">Resuelto</option>
+        <option value="no_resuelto">No Resuelto</option>
+    </select>
 
+    <!-- Filtro para seleccionar un rango de fecha de inicio -->
     <label for="filtro_fecha_inicio">Fecha Inicio:</label>
     <input type="date" id="filtro_fecha_inicio">
 
+    <!-- Filtro para seleccionar un rango de fecha de fin -->
     <label for="filtro_fecha_fin">Fecha Fin:</label>
     <input type="date" id="filtro_fecha_fin">
 
-    <!-- Divs separados para cada gráfico -->
+    <!-- Contenedores para las gráficas -->
     <div id="grafico1" style="width:100%;height:400px;"></div>
     <div id="grafico2" style="width:100%;height:400px;"></div>
     <div id="grafico3" style="width:100%;height:400px;"></div>
     <div id="grafico4" style="width:100%;height:400px;"></div>
 
     <script>
-        // Función para cargar los filtros desde la base de datos
+        // Función para cargar los datos de los filtros desde el servidor
         function cargarFiltros() {
+            // Se hace una solicitud al servidor para obtener los datos de los filtros
             $.getJSON('/obtener_filtros', function(data) {
+                // Selecciona los elementos HTML para los filtros de nombre y curso
                 var filtroNombre = document.getElementById('filtro_nombre');
                 var filtroCurso = document.getElementById('filtro_curso');
     
-                // Agregar opción "Todos" al inicio
+                // Crear y añadir la opción "Todos" al inicio del filtro de nombres
                 var opcionTodosNombre = document.createElement('option');
                 opcionTodosNombre.value = 'todos';
                 opcionTodosNombre.text = 'Todos';
                 filtroNombre.add(opcionTodosNombre);
     
+                // Crear y añadir la opción "Todos" al inicio del filtro de cursos
                 var opcionTodosCurso = document.createElement('option');
                 opcionTodosCurso.value = 'todos';
                 opcionTodosCurso.text = 'Todos';
                 filtroCurso.add(opcionTodosCurso);
     
-                // Agregar los nombres y cursos de la base de datos
+                // Llenar el filtro de nombres con los datos obtenidos del servidor
                 data.nombres.forEach(function(nombre) {
                     var opcion = document.createElement('option');
                     opcion.value = nombre;
@@ -62,6 +73,7 @@
                     filtroNombre.add(opcion);
                 });
     
+                // Llenar el filtro de cursos con los datos obtenidos del servidor
                 data.cursos.forEach(function(curso) {
                     var opcion = document.createElement('option');
                     opcion.value = curso;
@@ -71,34 +83,38 @@
             });
         }
     
-        // Cargar los filtros al cargar la página
+        // Llamar a la función de cargar filtros al cargar la página
         cargarFiltros();
     
-        // Función para actualizar los gráficos con los filtros seleccionados
+        // Función para actualizar los gráficos según los filtros seleccionados
         function actualizarGraficos() {
-        var nombre = document.getElementById('filtro_nombre').value;
-        var curso = document.getElementById('filtro_curso').value;
-        var resuelto = document.getElementById('filtro_resuelto').value;
-        var fecha_inicio = document.getElementById('filtro_fecha_inicio').value;
-        var fecha_fin = document.getElementById('filtro_fecha_fin').value;
+            // Obtener los valores seleccionados en los filtros
+            var nombre = document.getElementById('filtro_nombre').value;
+            var curso = document.getElementById('filtro_curso').value;
+            var resuelto = document.getElementById('filtro_resuelto').value;
+            var fecha_inicio = document.getElementById('filtro_fecha_inicio').value;
+            var fecha_fin = document.getElementById('filtro_fecha_fin').value;
 
-        // Enviar los filtros al backend
-        $.getJSON(`/datos_grafico?nombre=${nombre}&curso=${curso}&resuelto=${resuelto}&fecha_inicio=${fecha_inicio}&fecha_fin=${fecha_fin}`, function(data) {
-            var graficos = JSON.parse(data).data;
-            
-            Plotly.react('grafico1', [graficos[0]], JSON.parse(data).layout);
-            Plotly.react('grafico2', [graficos[1]], JSON.parse(data).layout);
-            Plotly.react('grafico3', [graficos[2]], JSON.parse(data).layout);
-            Plotly.react('grafico4', [graficos[3]], JSON.parse(data).layout);
-        });
-    }
+            // Enviar los filtros al servidor mediante una solicitud AJAX
+            $.getJSON(`/datos_grafico?nombre=${nombre}&curso=${curso}&resuelto=${resuelto}&fecha_inicio=${fecha_inicio}&fecha_fin=${fecha_fin}`, function(data) {
+                // Parsear la respuesta y obtener los datos para las gráficas
+                var graficos = JSON.parse(data).data;
+                
+                // Actualizar cada gráfico con los nuevos datos
+                Plotly.react('grafico1', [graficos[0]], JSON.parse(data).layout);
+                Plotly.react('grafico2', [graficos[1]], JSON.parse(data).layout);
+                Plotly.react('grafico3', [graficos[2]], JSON.parse(data).layout);
+                Plotly.react('grafico4', [graficos[3]], JSON.parse(data).layout);
+            });
+        }
 
-    // Actualizar los gráficos cada vez que se cambian los filtros
-    document.getElementById('filtro_nombre').onchange = actualizarGraficos;
-    document.getElementById('filtro_curso').onchange = actualizarGraficos;
-    document.getElementById('filtro_resuelto').onchange = actualizarGraficos;
-    document.getElementById('filtro_fecha_inicio').onchange = actualizarGraficos;
-    document.getElementById('filtro_fecha_fin').onchange = actualizarGraficos;
+        // Asignar la función de actualizar gráficos a cada cambio en los filtros
+        document.getElementById('filtro_nombre').onchange = actualizarGraficos;
+        document.getElementById('filtro_curso').onchange = actualizarGraficos;
+        document.getElementById('filtro_resuelto').onchange = actualizarGraficos;
+        document.getElementById('filtro_fecha_inicio').onchange = actualizarGraficos;
+        document.getElementById('filtro_fecha_fin').onchange = actualizarGraficos;
+
         // Inicializar los gráficos al cargar la página
         actualizarGraficos();
     </script>

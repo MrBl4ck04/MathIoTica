@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard en Tiempo Real</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Dashboard en Tiempo Real</h1>
+
+    <!-- Filtros -->
+    <label for="filtro_nombre">Nombre:</label>
+    <select id="filtro_nombre"></select>
+
+    <label for="filtro_curso">Curso:</label>
+    <select id="filtro_curso"></select>
+
+    <div id="grafico" style="width:100%;height:600px;"></div>
+
+    <script>
+        // Función para cargar los filtros desde la base de datos
+        function cargarFiltros() {
+            $.getJSON('/obtener_filtros', function(data) {
+                var filtroNombre = document.getElementById('filtro_nombre');
+                var filtroCurso = document.getElementById('filtro_curso');
+
+                data.nombres.forEach(function(nombre) {
+                    var opcion = document.createElement('option');
+                    opcion.value = nombre;
+                    opcion.text = nombre;
+                    filtroNombre.add(opcion);
+                });
+
+                data.cursos.forEach(function(curso) {
+                    var opcion = document.createElement('option');
+                    opcion.value = curso;
+                    opcion.text = curso;
+                    filtroCurso.add(opcion);
+                });
+            });
+        }
+
+        // Cargar los filtros al cargar la página
+        cargarFiltros();
+
+        // Función para actualizar el gráfico con los filtros seleccionados
+        function actualizarGrafico() {
+            var nombre = document.getElementById('filtro_nombre').value;
+            var curso = document.getElementById('filtro_curso').value;
+
+            $.getJSON(`/datos_grafico?nombre=${nombre}&curso=${curso}`, function(data) {
+                var grafico = document.getElementById('grafico');
+                Plotly.react(grafico, JSON.parse(data).data, JSON.parse(data).layout);
+            });
+        }
+
+        // Actualizar el gráfico cada vez que se cambian los filtros
+        document.getElementById('filtro_nombre').onchange = actualizarGrafico;
+        document.getElementById('filtro_curso').onchange = actualizarGrafico;
+
+        // Inicializar el gráfico al cargar la página
+        actualizarGrafico();
+    </script>
+</body>
+</html>

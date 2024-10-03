@@ -11,7 +11,7 @@ def conectar_bd():
         host="localhost",  # El servidor de la base de datos
         user="root",  # Usuario de la base de datos
         password="",  # Contraseña del usuario
-        database="mate"  # Nombre de la base de datos
+        database="mathiotica"  # Nombre de la base de datos
     )
 
 # Función para obtener el número de juego más alto e incrementarlo

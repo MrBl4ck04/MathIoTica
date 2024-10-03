@@ -1,4 +1,5 @@
-import tkinter as tk  
+import tkinter as tk 
+import webbrowser  # Importa la librería webbrowser
 from tkinter import ttk, messagebox 
 import mysql.connector 
 from reportes import reportes
@@ -262,14 +263,14 @@ btn_ejercicios.pack(pady=20)
 btn_dashboard = tk.Button(
     root, 
     text="Dashboard", 
-    command=lambda: messagebox.showinfo("Dashboard", "Función de Dashboard aún no implementada."),  # Placeholder para el dashboard
+    command=lambda: webbrowser.open('http://127.0.0.1:5000/'),  # Abre el dashboard en el navegador
     bg="#008080",        
     fg="white",         
     font=('Arial', 16, 'bold'),  
     relief="raised",     
     bd=5,                
     activebackground="#1E88E5"  
-)  
+) 
 btn_dashboard.pack(pady=20) 
 
 btn_reporte = tk.Button(
@@ -284,6 +285,5 @@ btn_reporte = tk.Button(
     activebackground="#1E88E5"  
 )  
 btn_reporte.pack(pady=20) 
-
 
 root.mainloop()  # Inicia el bucle de eventos de la ventana principal

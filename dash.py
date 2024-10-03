@@ -12,7 +12,7 @@ def conectar():
         host="localhost",
         user="root",  # Cambia esto
         password="",  # Cambia esto
-        database="mate"
+        database="mathiotica"
     )
     return conexion
 

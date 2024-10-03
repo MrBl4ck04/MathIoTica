@@ -77,8 +77,24 @@ def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana
             messagebox.showerror("Error", f"Error al conectarse a la base de datos: {err}")  # Muestra un mensaje de error
 
     # Tabla para mostrar los resultados
-    columns = ["ID", "Curso", "Nombre", "Tiempo", "Fecha", "Puntuación", "Operación", "Digitos", "Logrado"]  # Define los encabezados de la tabla
-    tree = ttk.Treeview(reporte_window, columns=columns, show='headings')  # Crea una tabla (Treeview) para mostrar resultados
+    columns = ["ID", "N° Juego","Curso", "Nombre", "Tiempo", "Fecha", "Puntuación", "Operación", "Digitos", "Logrado"]  # Define los encabezados de la tabla
+    tree = ttk.Treeview(reporte_window, columns=columns, show='headings')    # Crea una tabla (Treeview) para mostrar resultados
+    # Crear un frame para contener la tabla y los scrollbars
+    table_frame = tk.Frame(reporte_window)
+    table_frame.pack(pady=10, fill=tk.BOTH, expand=True)
+
+    # Scroll vertical
+    scrollbar_vertical = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=tree.yview)
+    scrollbar_vertical.pack(side=tk.RIGHT, fill=tk.Y)
+
+    # Scroll horizontal
+    scrollbar_horizontal = ttk.Scrollbar(table_frame, orient=tk.HORIZONTAL, command=tree.xview)
+    scrollbar_horizontal.pack(side=tk.BOTTOM, fill=tk.X)
+
+    # Configurar la tabla para que use los scrollbars
+    tree.configure(yscrollcommand=scrollbar_vertical.set, xscrollcommand=scrollbar_horizontal.set)
+
+
     for col in columns:  # Itera sobre los encabezados de la tabla
         tree.heading(col, text=col)  # Establece el encabezado de cada columna
     tree.pack(pady=10, fill=tk.BOTH, expand=True)  # Muestra la tabla en la ventana

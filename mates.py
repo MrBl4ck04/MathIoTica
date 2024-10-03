@@ -17,8 +17,8 @@ from PIL import Image, ImageTk
 def conectar_bd():
     # Retorna una conexión a la base de datos mathiotica
     return mysql.connector.connect(
-        host="localhost",  # El servidor de la base de datos
-        user="root",  # Usuario de la base de datos
+        host="192.168.243.2",  # El servidor de la base de datos
+        user="Franz",  # Usuario de la base de datos
         password="",  # Contraseña del usuario
         database="mathiotica"  # Nombre de la base de datos
     )

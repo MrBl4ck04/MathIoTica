@@ -2,6 +2,8 @@ import tkinter as tk  # Importa la librería tkinter y la renombra como tk
 from tkinter import ttk, messagebox  # Importa ttk (widget de la interfaz) y messagebox (para mostrar mensajes)
 import mysql.connector  # Importa el conector para MySQL
 import csv  # Importa el módulo csv para trabajar con archivos CSV
+import matplotlib.pyplot as plt  # Importa matplotlib para graficar
+import pandas as pd  # Importa pandas para manejar datos en formato de tabla
 
 def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana principal 'root' y la conexión a la base de datos 'conn'
     # Crear ventana de reportes
@@ -73,12 +75,44 @@ def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana
 
             cursor.close()  # Cierra el cursor
 
+            # Graficar curva de aprendizaje
+            graficar_curva_aprendizaje(curso, usuario)  # Llama a la función para graficar
+
         except mysql.connector.Error as err:  # Manejo de errores de la conexión MySQL
             messagebox.showerror("Error", f"Error al conectarse a la base de datos: {err}")  # Muestra un mensaje de error
 
+    # Función para graficar la curva de aprendizaje
+    def graficar_curva_aprendizaje(curso, usuario):
+        try:
+            # Consulta para obtener la cantidad de logros por fecha
+            query = """
+            SELECT fecha, COUNT(logrado) as logros
+            FROM juegos
+            WHERE curso = %s AND nombre = %s AND logrado = 1
+            GROUP BY fecha
+            ORDER BY fecha
+            """
+            df = pd.read_sql(query, conn, params=(curso, usuario))  # Ejecuta la consulta y carga los resultados en un DataFrame
+
+            if not df.empty:  # Si hay datos
+                plt.figure(figsize=(10, 5))  # Define el tamaño de la figura
+                plt.plot(df['fecha'], df['logros'], marker='o')  # Grafica la curva de aprendizaje
+                plt.title(f"Curva de Aprendizaje: {usuario} en {curso}")  # Título de la gráfica
+                plt.xlabel("Fecha")  # Etiqueta del eje X
+                plt.ylabel("Cantidad de Logros")  # Etiqueta del eje Y
+                plt.xticks(rotation=45)  # Rota las etiquetas del eje X para mejor visibilidad
+                plt.grid()  # Muestra la cuadrícula
+                plt.tight_layout()  # Ajusta el diseño
+                plt.show()  # Muestra la gráfica
+            else:
+                messagebox.showinfo("Sin datos", "No se encontraron logros para graficar.")  # Muestra mensaje si no hay datos
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al graficar la curva de aprendizaje: {e}")  # Muestra un mensaje de error
+
     # Tabla para mostrar los resultados
-    columns = ["ID", "N° Juego","Curso", "Nombre", "Tiempo", "Fecha", "Puntuación", "Operación", "Digitos", "Logrado"]  # Define los encabezados de la tabla
-    tree = ttk.Treeview(reporte_window, columns=columns, show='headings')    # Crea una tabla (Treeview) para mostrar resultados
+    columns = ["ID", "N° Juego", "Curso", "Nombre", "Tiempo", "Fecha", "Puntuación", "Operación", "Digitos", "Logrado"]  # Define los encabezados de la tabla
+    tree = ttk.Treeview(reporte_window, columns=columns, show='headings')  # Crea una tabla (Treeview) para mostrar resultados
     # Crear un frame para contener la tabla y los scrollbars
     table_frame = tk.Frame(reporte_window)
     table_frame.pack(pady=10, fill=tk.BOTH, expand=True)
@@ -94,7 +128,6 @@ def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana
     # Configurar la tabla para que use los scrollbars
     tree.configure(yscrollcommand=scrollbar_vertical.set, xscrollcommand=scrollbar_horizontal.set)
 
-
     for col in columns:  # Itera sobre los encabezados de la tabla
         tree.heading(col, text=col)  # Establece el encabezado de cada columna
     tree.pack(pady=10, fill=tk.BOTH, expand=True)  # Muestra la tabla en la ventana
@@ -104,33 +137,29 @@ def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana
     fg="white",         
     font=('Arial', 12, 'bold'),  
     relief="raised",     
-    bd=5,    )  # Crea un botón que ejecuta la función de búsqueda
+    bd=5)  # Crea un botón que ejecuta la función de búsqueda
     buscar_btn.pack(pady=10)  # Muestra el botón en la ventana
 
     # Función para guardar en CSV
     def guardar_csv():  # Define la función para guardar los resultados en un archivo CSV
         usuario = usuario_var.get()  # Obtiene el nombre del usuario seleccionado
-        # Verifica que el usuario tenga un nombre válido para usar como parte del nombre del archivo
-        if not usuario:
-            messagebox.showwarning("Advertencia", "Por favor, selecciona un usuario antes de guardar.")  # Muestra advertencia si no hay usuario
+        # Verificar si se seleccionó un usuario
+        if not usuario:  # Si no se ha seleccionado usuario
+            messagebox.showwarning("Advertencia", "Por favor, selecciona un usuario.")  # Muestra una advertencia
             return  # Sale de la función
+        # Preguntar al usuario donde guardar el archivo CSV
+        file_path = tk.filedialog.asksaveasfilename(defaultextension=".csv", 
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])  # Muestra un cuadro de diálogo para guardar el archivo
+        if file_path:  # Si se ha seleccionado una ruta
+            with open(file_path, mode='w', newline='') as file:  # Abre el archivo en modo escritura
+                writer = csv.writer(file)  # Crea un objeto escritor para escribir en el archivo
+                writer.writerow(columns)  # Escribe los encabezados en la primera fila
+                for row in tree.get_children():  # Itera sobre los elementos de la tabla
+                    writer.writerow(tree.item(row)['values'])  # Escribe los valores de cada fila en el archivo
+            messagebox.showinfo("Éxito", "Los datos se han guardado correctamente en el archivo CSV.")  # Muestra un mensaje de éxito
 
-        # Crear nombre de archivo con el nombre del usuario
-        nombre_archivo = f"{usuario}_reportes.csv"  # Define el nombre del archivo usando el nombre del usuario
+    # Botón para guardar en CSV
+    guardar_csv_btn = tk.Button(reporte_window, text="Guardar CSV", command=guardar_csv, bg="#008080", 
+    fg="white", font=('Arial', 12, 'bold'), relief="raised", bd=5)  # Crea un botón para guardar en CSV
+    guardar_csv_btn.pack(pady=10)  # Muestra el botón en la ventana
 
-        with open(nombre_archivo, "w", newline="") as archivo:  # Abre (o crea) un archivo CSV para escribir con el nombre definido
-            writer = csv.writer(archivo)  # Crea un escritor de CSV
-            writer.writerow(columns)  # Escribe los encabezados en el archivo
-            
-            for row in tree.get_children():  # Itera sobre los elementos en la tabla
-                writer.writerow(tree.item(row)["values"])  # Escribe los valores de cada fila en el archivo CSV
-        
-        messagebox.showinfo("Éxito", f"Datos guardados en '{nombre_archivo}'")  # Muestra un mensaje de éxito
-
-    # Botón para guardar como CSV
-    guardar_btn = tk.Button(reporte_window, text="Guardar como CSV", command=guardar_csv,bg="#2082AA",        
-    fg="white",         
-    font=('Arial', 12, 'bold'),  
-    relief="raised",     
-    bd=5)  # Crea un botón que ejecuta la función para guardar en CSV
-    guardar_btn.pack(pady=10)  # Muestra el botón en la ventana

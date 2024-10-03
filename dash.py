@@ -18,8 +18,8 @@ app = Flask(__name__)
 def conectar():
     # Se establece la conexión con la base de datos utilizando los parámetros de host, usuario, contraseña y nombre de la base de datos
     conexion = mysql.connector.connect(
-        host="localhost",  # Dirección del servidor de la base de datos (local)
-        user="root",       # Usuario de la base de datos (cambiar según tu configuración)
+        host="192.168.243.2",  # Dirección del servidor de la base de datos (local)
+        user="Franz",       # Usuario de la base de datos (cambiar según tu configuración)
         password="",       # Contraseña del usuario (cambiar según tu configuración)
         database="mathiotica"  # Nombre de la base de datos
     )

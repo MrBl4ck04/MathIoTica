@@ -5,8 +5,8 @@ import mysql.connector
 from reportes import reportes
 # Conectar a la base de datos MySQL
 conn = mysql.connector.connect(
-    host="localhost",  
-    user="root", 
+    host="192.168.243.2",  
+    user="Franz", 
     password="",  
     database="mathiotica" 
 )

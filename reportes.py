@@ -84,28 +84,45 @@ def reportes(root, conn):  # Define la función 'reportes' que recibe la ventana
     # Función para graficar la curva de aprendizaje
     def graficar_curva_aprendizaje(curso, usuario):
         try:
-            # Consulta para obtener la cantidad de logros por fecha
-            query = """
+            # Consulta para obtener la cantidad de logros y no logros por fecha
+            query_logros = """
             SELECT fecha, COUNT(logrado) as logros
             FROM juegos
             WHERE curso = %s AND nombre = %s AND logrado = 1
             GROUP BY fecha
             ORDER BY fecha
             """
-            df = pd.read_sql(query, conn, params=(curso, usuario))  # Ejecuta la consulta y carga los resultados en un DataFrame
+            query_no_logros = """
+            SELECT fecha, COUNT(logrado) as no_logros
+            FROM juegos
+            WHERE curso = %s AND nombre = %s AND logrado = 0
+            GROUP BY fecha
+            ORDER BY fecha
+            """
 
-            if not df.empty:  # Si hay datos
+            # Ejecutar consultas y cargar los resultados en DataFrames
+            df_logros = pd.read_sql(query_logros, conn, params=(curso, usuario))
+            df_no_logros = pd.read_sql(query_no_logros, conn, params=(curso, usuario))
+
+            if not df_logros.empty or not df_no_logros.empty:  # Si hay datos
                 plt.figure(figsize=(10, 5))  # Define el tamaño de la figura
-                plt.plot(df['fecha'], df['logros'], marker='o')  # Grafica la curva de aprendizaje
+
+                # Grafica los logros
+                plt.plot(df_logros['fecha'], df_logros['logros'], marker='o', label="Logros", color='green')
+                # Grafica los no logros
+                plt.plot(df_no_logros['fecha'], df_no_logros['no_logros'], marker='x', label="No logrados", color='red')
+
+                # Configuración de la gráfica
                 plt.title(f"Curva de Aprendizaje: {usuario} en {curso}")  # Título de la gráfica
                 plt.xlabel("Fecha")  # Etiqueta del eje X
-                plt.ylabel("Cantidad de Logros")  # Etiqueta del eje Y
+                plt.ylabel("Cantidad")  # Etiqueta del eje Y
                 plt.xticks(rotation=45)  # Rota las etiquetas del eje X para mejor visibilidad
                 plt.grid()  # Muestra la cuadrícula
+                plt.legend()  # Muestra la leyenda
                 plt.tight_layout()  # Ajusta el diseño
                 plt.show()  # Muestra la gráfica
             else:
-                messagebox.showinfo("Sin datos", "No se encontraron logros para graficar.")  # Muestra mensaje si no hay datos
+                messagebox.showinfo("Sin datos", "No se encontraron datos para graficar.")  # Muestra mensaje si no hay datos
 
         except Exception as e:
             messagebox.showerror("Error", f"Error al graficar la curva de aprendizaje: {e}")  # Muestra un mensaje de error
